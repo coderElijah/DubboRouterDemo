@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: dubbo-router-consumer
+
+dubbo:
+  application:
+    id: dubbo-router-consumer
+    name: dubbo-router-consumer
+  protocol:
+    name: dubbo
+    port: 28881
+  registry:
+    address: zookeeper://127.0.0.1:2181
+  consumer:
+    check: false
+    loadbalance: grey

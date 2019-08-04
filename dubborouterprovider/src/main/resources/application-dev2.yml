@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: dubbo-router-provider-v2.0.0
+dubbo:
+  application:
+    id: dubbo-router-provider-v2.0.0
+    name: dubbo-router-provider-v2.0.0
+  protocol:
+    name: dubbo
+    port: 28884
+  registry:
+    address: zookeeper://127.0.0.1:2181
+  consumer:
+    check: false
+server:
+  port: 8002
