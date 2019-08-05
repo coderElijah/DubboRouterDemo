@@ -3,6 +3,9 @@ package com.elijah.dubborouterconsumer;
 import com.alibaba.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.Activate;
+import org.apache.dubbo.common.extension.ExtensionLoader;
+import org.apache.dubbo.remoting.zookeeper.ZookeeperClient;
+import org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter;
 import org.apache.dubbo.rpc.*;
 import org.apache.dubbo.rpc.protocol.InvokerWrapper;
 import org.slf4j.Logger;
@@ -26,6 +29,10 @@ public class ConsumerFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        ZookeeperTransporter curtor = ExtensionLoader.getExtensionLoader(ZookeeperTransporter.class).getExtension("curator");
+        ZookeeperClient zkClient = curtor.connect(invoker.getUrl());
+        zkClient.create("/CustomRouteRules/AcmeRouteRules/elijahtest1=dubbo-router-provider-v1.0.0&elijahtest2=dubbo-router-provider-v2.0.0",Boolean.TRUE);
+
         logger.info("----------------i am filter");
         URL url = invoker.getUrl();
         String version = url.getParameter("dubbo.tag");

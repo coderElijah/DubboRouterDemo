@@ -26,7 +26,7 @@ public class Consume {
     DubboRouterService dubboRouterService;
 
     @PostConstruct
-    public void doConsume(){
+    public void doConsume() {
         logger.info("------------------select version:{}", dubboRouterService.selectVersion());
     }
 }
