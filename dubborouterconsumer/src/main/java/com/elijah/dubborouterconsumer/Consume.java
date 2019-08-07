@@ -22,7 +22,7 @@ public class Consume {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Reference(loadbalance = "grey")
+    @Reference
     DubboRouterService dubboRouterService;
 
     @PostConstruct

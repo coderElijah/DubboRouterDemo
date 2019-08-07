@@ -1,17 +1,9 @@
 package com.elijah.dubborouterprovider.provider;
 
 import com.elijah.dubboroutercommon.DubboRouterService;
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.config.annotation.Service;
-import org.apache.dubbo.remoting.zookeeper.DataListener;
-import org.apache.dubbo.remoting.zookeeper.EventType;
-import org.apache.dubbo.remoting.zookeeper.ZookeeperClient;
-import org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Description:
@@ -35,11 +27,21 @@ public class IDubboRouterServiceV1 implements DubboRouterService {
         return "i m " + dubboApplicationId;
     }
 
-    @PostConstruct
-    public void refisterRouteRules(){
-        ZookeeperTransporter curator = ExtensionLoader.getExtensionLoader(ZookeeperTransporter.class).getExtension("curator");
-        URL zookeeperUrl = new URL("zookeeper", "127.0.0.1", 2181);
-        ZookeeperClient zkClient = curator.connect(zookeeperUrl);
-        zkClient.create("/CustomRouterRules/Acme/routerrules", "user1=" + dubboApplicationId, Boolean.TRUE);
-    }
+//    @PostConstruct
+//    public void refisterRouteRules(){
+//        List<GrayRule> grayRules = new ArrayList<>();
+//        GrayRule grayRule = new GrayRule();
+//        grayRule.setBizzKey("123");
+//        grayRule.setApplicationId("dubbo-router-provider-v1.0.0");
+//        grayRule.setIsEnable(1);
+//        grayRule.setCreateTime(System.currentTimeMillis());
+//        grayRules.add(grayRule);
+//        GrayRule grayRule1 = new GrayRule();
+//        grayRule1.setBizzKey("456");
+//        grayRule1.setApplicationId("dubbo-router-provider-v2.0.0");
+//        grayRule1.setIsEnable(1);
+//        grayRule1.setCreateTime(System.currentTimeMillis());
+//        grayRules.add(grayRule1);
+////        GrayRouteRulesCache.getInstance().addZkRouteRulesCach(zookeeperAddress,"/CustomRouterRules/Acme/routerrules", grayRules);
+//    }
 }

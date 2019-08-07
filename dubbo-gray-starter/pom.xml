@@ -9,13 +9,17 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.elijah</groupId>
-    <artifactId>dubborouterprovider</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>dubborouterprovider</name>
-    <description>Demo project for Spring Boot</description>
+    <artifactId>dubbo-gray-starter</artifactId>
+    <version>0.0.1-010</version>
+    <name>dubbo-gray-starter</name>
+    <description>dubbo gray</description>
 
     <properties>
         <java.version>1.8</java.version>
+        <!-- 设置编码为 UTF-8 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
     </properties>
 
     <dependencies>
@@ -30,14 +34,22 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo</artifactId>
             <version>2.7.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.elijah</groupId>
-            <artifactId>dubbo-router-common</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.dubbo</groupId>
@@ -54,16 +66,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>2.9.9</version>
-        </dependency>
-        <dependency>
-            <groupId>com.elijah</groupId>
-            <artifactId>dubbo-gray-starter</artifactId>
-            <version>0.0.1-010</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-spring-boot-starter</artifactId>
-            <version>2.7.1</version>
         </dependency>
     </dependencies>
 

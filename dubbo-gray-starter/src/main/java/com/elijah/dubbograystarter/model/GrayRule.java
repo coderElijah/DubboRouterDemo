@@ -1,4 +1,4 @@
-package com.elijah.dubborouterprovider;
+package com.elijah.dubbograystarter.model;
 
 /**
  * Description:
@@ -31,6 +31,19 @@ public class GrayRule {
      * 规则开启 0-关闭 1-开启
      */
     private Integer isEnable;
+    /**
+     * 创建时间
+     */
+    private Long createTime;
+
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
+    }
 
     public String getBizzKey() {
         return bizzKey;
