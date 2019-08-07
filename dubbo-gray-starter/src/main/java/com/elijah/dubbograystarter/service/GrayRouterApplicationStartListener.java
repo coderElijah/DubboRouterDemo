@@ -1,15 +1,9 @@
 package com.elijah.dubbograystarter.service;
 
-import com.elijah.dubbograystarter.config.DubboGrayProperties;
-import com.elijah.dubbograystarter.model.GrayRulesType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 /**
  * Description:

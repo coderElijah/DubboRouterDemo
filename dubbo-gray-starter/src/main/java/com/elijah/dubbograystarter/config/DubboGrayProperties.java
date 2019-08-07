@@ -1,6 +1,5 @@
 package com.elijah.dubbograystarter.config;
 
-import com.elijah.dubbograystarter.model.GrayRulesType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
