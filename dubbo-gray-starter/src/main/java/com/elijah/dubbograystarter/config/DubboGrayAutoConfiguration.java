@@ -1,5 +1,6 @@
 package com.elijah.dubbograystarter.config;
 
+import com.elijah.dubbograystarter.controller.DubboGrayController;
 import com.elijah.dubbograystarter.model.GrayRule;
 import com.elijah.dubbograystarter.service.GrayRouteRulesCache;
 import com.elijah.dubbograystarter.service.GrayRouterApplicationStartListener;
@@ -46,5 +47,10 @@ public class DubboGrayAutoConfiguration {
     @ConditionalOnMissingBean(GrayRouterApplicationStartListener.class)
     public GrayRouterApplicationStartListener grayRouterApplicationStartListener(){
         return new GrayRouterApplicationStartListener();
+    }
+    @Bean
+    @ConditionalOnMissingBean
+    public DubboGrayController dubboGrayController(){
+        return new DubboGrayController();
     }
 }

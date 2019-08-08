@@ -24,18 +24,29 @@ public class GrayRule {
      */
     private String bizzKey;
     /**
+     * 应用类型（服务名）
+     */
+    private String applicationType;
+    /**
      * 应用id
      */
     private String applicationId;
     /**
      * 规则开启 0-关闭 1-开启
      */
-    private Integer isEnable;
+    private int isEnable;
     /**
      * 创建时间
      */
     private Long createTime;
 
+    public String getApplicationType() {
+        return applicationType;
+    }
+
+    public void setApplicationType(String applicationType) {
+        this.applicationType = applicationType;
+    }
 
     public Long getCreateTime() {
         return createTime;
@@ -61,11 +72,11 @@ public class GrayRule {
         this.applicationId = applicationId;
     }
 
-    public Integer getIsEnable() {
+    public int getIsEnable() {
         return isEnable;
     }
 
-    public void setIsEnable(Integer isEnable) {
+    public void setIsEnable(int isEnable) {
         this.isEnable = isEnable;
     }
 }

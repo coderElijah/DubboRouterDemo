@@ -3,19 +3,23 @@ package com.elijah.dubbograystarter.service;
 import com.elijah.dubbograystarter.model.GrayRule;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
+import org.apache.dubbo.registry.integration.RegistryProtocol;
 import org.apache.dubbo.registry.support.ProviderInvokerWrapper;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
+import org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.elijah.dubbograystarter.Constant.*;
 import static org.apache.dubbo.rpc.cluster.Constants.DEFAULT_LOADBALANCE;
 
 /**
@@ -36,7 +40,7 @@ public class DubboGrayLoadBalance implements LoadBalance{
     @Override
     public <T> Invoker<T> select(List<Invoker<T>> invokers, URL url, Invocation invocation) throws RpcException {
         logger.info("use loadbalance {}", NAME);
-        Map<String, Map<String, GrayRule>> grayRouteRulesMap = GrayRouteRulesCache.getInstance().getGrayRules();
+        Map<String, Map<String, String>> grayRouteRulesMap = GrayRouteRulesCache.getInstance().getGrayRules();
         LoadBalance defualtLoadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(DEFAULT_LOADBALANCE);
         if (grayRouteRulesMap == null || grayRouteRulesMap.isEmpty()) {
             return defualtLoadBalance.select(invokers, url, invocation);
@@ -46,26 +50,70 @@ public class DubboGrayLoadBalance implements LoadBalance{
             return defualtLoadBalance.select(invokers, url, invocation);
         }
         String bizzKey = String.valueOf(args[0]);
-        Iterator<Invoker<T>> invokerIterator = invokers.iterator();
-        List<Invoker<T>> grayInvokerList = new ArrayList<>();
-        while (invokerIterator.hasNext()){
-            Invoker<T> invoker = invokerIterator.next();
-            if(isGray(bizzKey,invoker,grayRouteRulesMap)){
-                logger.info("join gray loadbalance:{}", bizzKey);
-                grayInvokerList.add(invoker);
-            }else {
-                continue;
-            }
-        }
-        // Done: 2019-08-07 不存在灰度路由则全部随机路由，若存在则灰度项随机路由
-        if(grayInvokerList.isEmpty()){
+        if (bizzKey == null || "".equals(bizzKey)) {
             return defualtLoadBalance.select(invokers, url, invocation);
-        }else{
-            return defualtLoadBalance.select(grayInvokerList, url, invocation);
         }
+        return defualtLoadBalance.select(this.getGrayInvoker(bizzKey, invokers, grayRouteRulesMap), url, invocation);
     }
 
-
+    /**
+     * 筛选路由invoker
+     * @param bizzKey
+     * @param invokers
+     * @param grayRouteRulesMap
+     * @param <T>
+     * @return
+     */
+    private <T> List<Invoker<T>> getGrayInvoker(String bizzKey,List<Invoker<T>> invokers,Map<String, Map<String, String>> grayRouteRulesMap) {
+        URL providerUrl;
+        Iterator<Invoker<T>> iterator = invokers.iterator();
+        List<Invoker<T>> newInvokers = new ArrayList<>();
+        while(iterator.hasNext()){
+            Invoker<T> invoker = iterator.next();
+            try {
+                Field field= invoker.getClass().getDeclaredField(Dubbo_Invoker_ProviderUrl_Field_Key);
+                field.setAccessible(true);
+                providerUrl = (URL) field.get(invoker);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                // Done: 2019-08-08 解析错误，则不进行此invoker的路由
+                logger.info("获取providerUrl错误");
+                newInvokers.add(invoker);
+                continue;
+            }
+            String applicationId = providerUrl.getParameter(Dubbo_Provider_Gray_ApplicationId_Key);
+            // Done: 2019-08-08 applicationid 为空则说明此invoker不参与灰度，全部可调用，则进行路由
+            if (applicationId == null || "".equals(applicationId)) {
+                newInvokers.add(invoker);
+            }
+            // Done: 2019-08-08 applicationtype为空则表示此服务应用不进行路由，全部可调用，则进行路由
+            String applicationType = applicationId.substring(0, applicationId.indexOf("-"));
+            if (!grayRouteRulesMap.containsKey(applicationType)) {
+                newInvokers.add(invoker);
+            }
+            Map<String,String> bizzMap = grayRouteRulesMap.get(applicationType);
+            // Done: 2019-08-08 存在此bizzid的路由规则 则判断此invoker是否是该bizzkey的对应应用
+            if (bizzMap.containsKey(bizzKey)) {
+                // Done: 2019-08-08 是对应应用则路由 否则不进行路由
+                String invokeApplicationId = bizzMap.get(bizzKey);
+                if (applicationId.equals(invokeApplicationId)) {
+                    newInvokers.add(invoker);
+                }else{
+                    continue;
+                }
+            }else{
+                // Done: 2019-08-08 不存在此bizzkey的路由规则,则此bizzkey走默认路由，判断此invoker是否是默认路由，是则添加invoker,否则不添加
+                if(bizzMap.get(Default_Gray_Application_LoadBalance_Version).equals(applicationId)){
+                    newInvokers.add(invoker);
+                }else{
+                    continue;
+                }
+            }
+        }
+        if (newInvokers == null || newInvokers.isEmpty()) {
+            throw new RpcException("当前bizzKey无可用服务:bizzKey-" + bizzKey);
+        }
+        return newInvokers;
+    }
     /**
      * 判断是否参与灰度
      * @param bizzKey
@@ -74,30 +122,27 @@ public class DubboGrayLoadBalance implements LoadBalance{
      * @param <T>
      * @return
      */
-    private <T> boolean isGray(String bizzKey,Invoker<T> invoker,Map<String,Map<String,GrayRule>> grayRulesMap) {
+    @Deprecated
+    private <T> boolean isGray(String bizzKey,Invoker<T> invoker,Map<String,Map<String,String>> grayRulesMap) {
         URL providerUrl;
-        if (invoker instanceof ProviderInvokerWrapper) {
-            providerUrl = ((ProviderInvokerWrapper) invoker).getProviderUrl();
-        }else{
+        try {
+            Field field= invoker.getClass().getDeclaredField(Dubbo_Invoker_ProviderUrl_Field_Key);
+            field.setAccessible(true);
+            providerUrl = (URL) field.get(invoker);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            logger.info("获取providerUrl错误,过滤此路由灰度");
             return false;
         }
-        String applicationId = providerUrl.getParameter("application.id");
+        String applicationId = providerUrl.getParameter(Dubbo_Provider_Gray_ApplicationId_Key);
         if (applicationId == null || "".equals(applicationId)) {
             return false;
         }
-        if (bizzKey == null || "".equals(bizzKey)) {
+        String applicationType = applicationId.substring(0, applicationId.indexOf("-"));
+        if (!grayRulesMap.containsKey(applicationType)) {
             return false;
         }
-
-        if (!grayRulesMap.containsKey(bizzKey)) {
-            return false;
-        }
-        Map<String, GrayRule> applicationMap = grayRulesMap.get(bizzKey);
-        if (!applicationMap.containsKey(applicationId)) {
-            return false;
-        }
-        GrayRule grayRule = applicationMap.get(applicationId);
-        if (grayRule.getIsEnable() == 0) {
+        Map<String,String> bizzMap = grayRulesMap.get(applicationType);
+        if (!bizzMap.containsKey(bizzKey)) {
             return false;
         }
         return true;

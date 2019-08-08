@@ -1,17 +1,15 @@
 spring:
   application:
-    name: dubbo-router-provider-v1.0.0
+    name: dubbo-v1.0.0
 dubbo:
   application:
-    id: dubbo-router-provider-v1.0.0
-    name: dubbo-router-provider-v1.0.0
+    id: dubbo.v1.0.0
   protocol:
     name: dubbo
-    port: 28883
+    port: 28886
   registry:
     address: zookeeper://127.0.0.1:2181
-    gray-rules-type: acme
   consumer:
     check: false
 server:
-  port: 8001
+  port: 8005

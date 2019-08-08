@@ -4,7 +4,8 @@ import com.elijah.dubboroutercommon.DubboRouterService;
 import org.apache.dubbo.config.annotation.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 
@@ -15,18 +16,24 @@ import javax.annotation.PostConstruct;
  * @Note Talk is cheap,just show me ur code.- -!
  * ProjectName:DubboRouterDemo
  * PackageName: com.elijah.dubborouterconsumer
- * Date: 2019-08-03 10:34
+ * Date: 2019-08-08 12:31
  */
-@Service
-public class Consume {
+@RestController
+public class TestController{
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Reference
     DubboRouterService dubboRouterService;
 
-    @PostConstruct
-    public void doConsume() {
-        logger.info("------------------select version:{}", dubboRouterService.selectVersion());
+    private String doConsume(String bizzKey) {
+        String resString = dubboRouterService.selectVersion(bizzKey);
+        logger.info("------------------select version:{}", resString);
+        return resString;
+    }
+
+    @GetMapping("/testDoGrayConsume")
+    public String test(String bizzKey){
+        return doConsume(bizzKey);
     }
 }

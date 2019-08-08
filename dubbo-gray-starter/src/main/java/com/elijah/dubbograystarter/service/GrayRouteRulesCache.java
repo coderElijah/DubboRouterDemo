@@ -2,6 +2,7 @@ package com.elijah.dubbograystarter.service;
 
 import com.elijah.dubbograystarter.model.GrayRule;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
@@ -10,12 +11,15 @@ import org.apache.dubbo.remoting.zookeeper.ZookeeperClient;
 import org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+
+import static com.elijah.dubbograystarter.Constant.Default_Gray_Application_LoadBalance_Version;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
 /**
@@ -35,7 +39,7 @@ public class GrayRouteRulesCache {
     private static volatile String registUrl;
     private static volatile String zkGrayRulesNodePath;
     private static final Logger logger = LoggerFactory.getLogger(GrayRouteRulesCache.class);
-    private static volatile ConcurrentHashMap<String, Map<String, GrayRule>> grayRouteRulesMap = new ConcurrentHashMap<>(16);
+    private static volatile Map<String, Map<String, String>> grayRouteRulesMap = new ConcurrentHashMap<>(16);
     private Executor executor = newFixedThreadPool(3, new NamedThreadFactory(this.getClass().getSimpleName(), true));
 
     private GrayRouteRulesCache() {
@@ -48,22 +52,25 @@ public class GrayRouteRulesCache {
     public static void setRegistUrl(String customRegistUrl) {
         registUrl = customRegistUrl;
     }
-    public static void setZkGrayRulesNodePath(String customNodePath){
+
+    public static void setZkGrayRulesNodePath(String customNodePath) {
         zkGrayRulesNodePath = customNodePath;
     }
 
 
     /**
      * 刷新本地规则缓存
+     *
      * @return
      */
     public boolean refreshLocalRules() {
         ZookeeperClient zookeeperClient = getZookeeperClient();
         String rules = zookeeperClient.getContent(zkGrayRulesNodePath);
-        Map<String, Map<String, GrayRule>> rulesMap = null;
+        Map<String, Map<String, String>> rulesMap = null;
         if (rules != null && !"".equals(rules)) {
             try {
-                rulesMap = new ObjectMapper().readValue(rules, ConcurrentHashMap.class);
+                rulesMap = new ObjectMapper().readValue(rules, new TypeReference<ConcurrentHashMap<String, Map<String, String>>>(){
+                });
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new RuntimeException("刷新路由规则json解析错误，规则需为json串");
@@ -73,13 +80,14 @@ public class GrayRouteRulesCache {
             logger.info("无可刷新路由规则");
             return false;
         }
-        grayRouteRulesMap = (ConcurrentHashMap<String, Map<String, GrayRule>>) rulesMap;
+        grayRouteRulesMap = rulesMap;
         logger.info("路由规则已刷新");
         return true;
     }
 
     /**
      * 向远程zk添加路由规则
+     *
      * @param grayRules
      * @return
      */
@@ -87,21 +95,30 @@ public class GrayRouteRulesCache {
         if (grayRules == null || grayRules.isEmpty()) {
             return false;
         }
-        refreshLocalRules();
-        Map<String, Map<String, GrayRule>> grayRuleMap = this.getGrayRules();
-        grayRules.forEach(grayRule -> {
-            if (grayRuleMap.containsKey(grayRule.getBizzKey())) {
-                grayRuleMap.get(grayRule.getBizzKey()).put(grayRule.getApplicationId(), grayRule);
-            } else {
-                Map<String, GrayRule> applicationMap = new HashMap<>(16);
-                applicationMap.put(grayRule.getApplicationId(), grayRule);
-                grayRuleMap.put(grayRule.getBizzKey(), applicationMap);
+        Map<String, Map<String, String>> newGrayRulesMap = new ConcurrentHashMap<>(16);
+        for (GrayRule grayRule : grayRules) {
+            if (0 == grayRule.getIsEnable()) {
+                continue;
+            }
+            Map<String, String> map;
+            if(newGrayRulesMap.containsKey(grayRule.getApplicationType())){
+                map = newGrayRulesMap.get(grayRule.getApplicationType());
+            }else{
+                map = new HashMap<>(16);
+            }
+            map.put(grayRule.getBizzKey(), grayRule.getApplicationId());
+            newGrayRulesMap.put(grayRule.getApplicationType(), map);
+        }
+        // Done: 2019-08-08 检查所有参与灰度的应用是否都含有default路由
+        newGrayRulesMap.forEach((k,v)->{
+            if(!v.containsKey(Default_Gray_Application_LoadBalance_Version)){
+                throw new RuntimeException(String.format("系统类型%s中不包含默认类型，请检查", k));
             }
         });
         ZookeeperClient zkClient = getZookeeperClient();
         String context;
         try {
-            context = new ObjectMapper().writeValueAsString(grayRuleMap);
+            context = new ObjectMapper().writeValueAsString(newGrayRulesMap);
         } catch (JsonProcessingException e) {
             logger.error("路由规则json序列化错误");
             e.printStackTrace();
@@ -127,7 +144,7 @@ public class GrayRouteRulesCache {
      *
      * @return
      */
-    public Map<String, Map<String, GrayRule>> getGrayRules() {
+    public Map<String, Map<String, String>> getGrayRules() {
         return grayRouteRulesMap;
     }
 

@@ -23,25 +23,7 @@ public class IDubboRouterServiceV1 implements DubboRouterService {
     String zookeeperAddress;
 
     @Override
-    public String selectVersion() {
-        return "i m " + dubboApplicationId;
+    public String selectVersion(String bizzKey) {
+        return "bizzKey:"+bizzKey+"\t i m " + dubboApplicationId;
     }
-
-//    @PostConstruct
-//    public void refisterRouteRules(){
-//        List<GrayRule> grayRules = new ArrayList<>();
-//        GrayRule grayRule = new GrayRule();
-//        grayRule.setBizzKey("123");
-//        grayRule.setApplicationId("dubbo-router-provider-v1.0.0");
-//        grayRule.setIsEnable(1);
-//        grayRule.setCreateTime(System.currentTimeMillis());
-//        grayRules.add(grayRule);
-//        GrayRule grayRule1 = new GrayRule();
-//        grayRule1.setBizzKey("456");
-//        grayRule1.setApplicationId("dubbo-router-provider-v2.0.0");
-//        grayRule1.setIsEnable(1);
-//        grayRule1.setCreateTime(System.currentTimeMillis());
-//        grayRules.add(grayRule1);
-////        GrayRouteRulesCache.getInstance().addZkRouteRulesCach(zookeeperAddress,"/CustomRouterRules/Acme/routerrules", grayRules);
-//    }
 }

@@ -8,11 +8,11 @@ dubbo:
     name: dubbo-router-consumer
   protocol:
     name: dubbo
-    port: 28881
+    port: 28889
   registry:
     address: zookeeper://127.0.0.1:2181
   consumer:
     check: false
     loadbalance: randomgray
-  provider:
-    loadbalance: randomgray
+server:
+  port: 8009

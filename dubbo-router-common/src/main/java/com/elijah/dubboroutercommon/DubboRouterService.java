@@ -10,5 +10,5 @@ package com.elijah.dubboroutercommon;
  * Date: 2019-08-02 22:50
  */
 public interface DubboRouterService {
-    String selectVersion();
+    String selectVersion(String bizzkey);
 }
