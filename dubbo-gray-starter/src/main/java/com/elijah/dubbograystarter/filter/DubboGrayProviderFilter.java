@@ -1,12 +1,9 @@
 package com.elijah.dubbograystarter.filter;
 
-import com.elijah.dubbograystarter.model.GrayRule;
 import com.elijah.dubbograystarter.service.GrayRouteRulesCache;
 import org.apache.dubbo.common.extension.Activate;
-import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.context.ConfigManager;
-import org.apache.dubbo.config.utils.ReferenceConfigCache;
 import org.apache.dubbo.rpc.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

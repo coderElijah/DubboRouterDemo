@@ -37,6 +37,7 @@ public class DubboGrayAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(GrayRouteRulesCache.class)
     public GrayRouteRulesCache grayRouteRulesCache(){
+        // TODO: 2019-08-09 地址地址校验
         logger.info("设置灰度路由监控节点路径:{}",dubboGrayProperties.getGrayRulesNodePath());
         GrayRouteRulesCache.setZkGrayRulesNodePath(dubboGrayProperties.getGrayRulesNodePath());
         logger.info("设置灰度路由监控zk路径:{}",dubboGrayProperties.getAddress());

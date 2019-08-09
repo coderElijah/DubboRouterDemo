@@ -1,24 +1,18 @@
 package com.elijah.dubbograystarter.service;
 
-import com.elijah.dubbograystarter.model.GrayRule;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
-import org.apache.dubbo.registry.integration.RegistryProtocol;
-import org.apache.dubbo.registry.support.ProviderInvokerWrapper;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
-import org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import static com.elijah.dubbograystarter.Constant.*;
 import static org.apache.dubbo.rpc.cluster.Constants.DEFAULT_LOADBALANCE;
 

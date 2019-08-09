@@ -28,7 +28,7 @@ public class TestController{
 
     private String doConsume(String bizzKey) {
         String resString = dubboRouterService.selectVersion(bizzKey);
-        logger.info("------------------select version:{}", resString);
+        logger.info("select version:{}", resString);
         return resString;
     }
 
